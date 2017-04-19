@@ -13,22 +13,8 @@ unitlist = row_units + column_units + square_units
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
-assignments = []
+#
 
-def assign_value(values, box, value):
-    """
-    Please use this function to update your values dictionary!
-    Assigns a value to a given box. If it updates the board record it.
-    """
-
-    # Don't waste memory appending actions that don't actually change any values
-    if values[box] == value:
-        return values
-
-    values[box] = value
-    if len(value) == 1:
-        assignments.append(values.copy())
-    return values
 
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
@@ -58,11 +44,14 @@ def grid_values(grid):
         """
     values = []
     all_digits = '123456789'
+    valIdx = 0
     for c in grid:
+        valIdx = valIdx + 1
         if c == '.':
             values.append(all_digits)
         elif c in all_digits:
             values.append(c)
+
 
     assert len(grid) == 81, "Input grid must be a string of length 81 (9x9)"
     return dict(zip(boxes, values))
@@ -85,6 +74,7 @@ def eliminate(values):
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
     for box in solved_values:
         digit = values[box]
+
         for peer in peers[box]:
             values[peer] = values[peer].replace(digit,'')
     return values
@@ -168,11 +158,4 @@ if __name__ == '__main__':
     else :
         print("Could not solve puzzle")
         exit(0)
-    try:
-        from visualize import visualize_assignments
-        visualize_assignments(assignments)
 
-    except SystemExit:
-        pass
-    except:
-        print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
