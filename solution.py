@@ -1,5 +1,17 @@
-from utils import *
+rows = 'ABCDEFGHI'
+cols = '123456789'
 
+def cross(a, b):
+    return [s+t for s in a for t in b]
+
+boxes = cross(rows, cols)
+
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+unitlist = row_units + column_units + square_units
+units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
 assignments = []
 
@@ -32,20 +44,28 @@ def naked_twins(values):
 
 def cross(A, B):
     "Cross product of elements in A and elements in B."
-    pass
+    return [s + t for s in A for t in B]
 
 def grid_values(grid):
-    """
-    Convert grid into a dict of {square: char} with '123456789' for empties.
-    Args:
-        grid(string) - A grid in string form.
-    Returns:
-        A grid in dictionary form
-            Keys: The boxes, e.g., 'A1'
-            Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
-    """
+    """Convert grid string into {<box>: <value>} dict with '123456789' value for empties.
+
+        Args:
+            grid: Sudoku grid in string form, 81 characters long
+        Returns:
+            Sudoku grid in dictionary form:
+            - keys: Box labels, e.g. 'A1'
+            - values: Value in corresponding box, e.g. '8', or '123456789' if it is empty.
+        """
+    values = []
+    all_digits = '123456789'
+    for c in grid:
+        if c == '.':
+            values.append(all_digits)
+        elif c in all_digits:
+            values.append(c)
+
     assert len(grid) == 81, "Input grid must be a string of length 81 (9x9)"
-    return dict(zip(boxes, grid))
+    return dict(zip(boxes, values))
 
 def display(values):
     """
@@ -53,7 +73,13 @@ def display(values):
     Args:
         values(dict): The sudoku in dictionary form
     """
-    pass
+    width = 1+max(len(values[s]) for s in boxes)
+    line = '+'.join(['-'*(width*3)]*3)
+    for r in rows:
+        print(''.join(values[r+c].center(width)+('|' if c in '36' else '')
+                      for c in cols))
+        if r in 'CF': print(line)
+    return
 
 def eliminate(values):
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
@@ -72,15 +98,21 @@ def only_choice(values):
     return values
 
 def reduce_puzzle(values):
+    """
+        Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
+        If the sudoku is solved, return the sudoku.
+        If after an iteration of both functions, the sudoku remains the same, return the sudoku.
+        Input: A sudoku in dictionary form.
+        Output: The resulting sudoku in dictionary form.
+        """
     stalled = False
     while not stalled:
         # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-
-        # Your code here: Use the Eliminate Strategy
-
-        # Your code here: Use the Only Choice Strategy
-
+        # Use the Eliminate Strategy
+        values = eliminate(values)
+        # Use the Only Choice Strategy
+        values = only_choice(values)
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stop the loop.
@@ -117,11 +149,25 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    grid_dict = grid_values(grid)
+    print(grid_dict)
+    return_val = search(grid_dict)
+    print(return_val)
+    return return_val
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(solve(diag_sudoku_grid))
+    normal_sudoku_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
+    normal_sudoku_dict = grid_values(normal_sudoku_grid)
+    print(normal_sudoku_dict)
 
+    solved_puzzle = solve(normal_sudoku_grid)
+    print(solved_puzzle)
+    if(solved_puzzle is not None) :
+        display(solved_puzzle)
+    else :
+        print("Could not solve puzzle")
+        exit(0)
     try:
         from visualize import visualize_assignments
         visualize_assignments(assignments)
