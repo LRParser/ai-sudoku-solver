@@ -28,6 +28,21 @@ def naked_twins(values):
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
 
+    #First, find all twins
+
+    twins_values = [box for box in values.keys() if len(values[box]) > 1]
+    for box in twins_values:
+        digit = values[box]
+        # Find where else this value occurs
+
+        for peer in peers[box]:
+            if digit == values[peer] :
+                print("Twin identified, value is %s, at both %s and %s" % (digit,box,peer))
+            # values[peer] = values[peer].replace(digit, '')
+    return values
+
+
+
 def cross(A, B):
     "Cross product of elements in A and elements in B."
     return [s + t for s in A for t in B]
@@ -103,6 +118,10 @@ def reduce_puzzle(values):
         values = eliminate(values)
         # Use the Only Choice Strategy
         values = only_choice(values)
+
+        # Use the naked twins strategy
+        values = naked_twins(values)
+
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stop the loop.
@@ -147,11 +166,11 @@ def solve(grid):
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    normal_sudoku_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
-    normal_sudoku_dict = grid_values(normal_sudoku_grid)
-    print(normal_sudoku_dict)
 
-    solved_puzzle = solve(normal_sudoku_grid)
+    normal_sudoku_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
+
+
+    solved_puzzle = solve(diag_sudoku_grid)
     print(solved_puzzle)
     if(solved_puzzle is not None) :
         display(solved_puzzle)
