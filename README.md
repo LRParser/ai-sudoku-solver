@@ -3,11 +3,11 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: *Student should provide answer here*
+A: We sucessively use the peer contraints in each direction (diagonal, square, row, and column) to narrow the search space
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+A: The naked_twins function is applied repeatedly in reduce_puzzle until we stop making progress (along with eliminate and only_choice)
 
 ### Install
 

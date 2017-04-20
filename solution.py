@@ -11,11 +11,9 @@ boxes = cross(rows, cols)
 
 diag_cross_vals = diag_cross(rows,cols)
 row_units = [cross(r, cols) for r in rows]
-print(row_units)
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
 diag_units = [diag_cross_vals]
-print(diag_units)
 unitlist = row_units + column_units + square_units + diag_units
 
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
@@ -43,7 +41,6 @@ column_peers = dict((s, set(sum(column_units[s],[]))-set([s])) for s in boxes)
 
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
-#
 
 
 
@@ -233,13 +230,15 @@ def reduce_puzzle(values):
         # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
 
-        # Use the naked twins strategy
-        values = naked_twins(values)
+
 
         # Use the Eliminate Strategy
         values = eliminate(values)
         # Use the Only Choice Strategy
         values = only_choice(values)
+
+        # Use the naked twins strategy
+        values = naked_twins(values)
 
 
         # Check how many boxes have a determined value, to compare
