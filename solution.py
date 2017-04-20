@@ -4,19 +4,40 @@ cols = '123456789'
 def cross(a, b):
     return [s+t for s in a for t in b]
 
+def diag_cross(a, b):
+    return [a[i] + b[i] for i in range(0,9,1)]
+
 boxes = cross(rows, cols)
 
+diag_cross_vals = diag_cross(rows,cols)
 row_units = [cross(r, cols) for r in rows]
+print(row_units)
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-diag_units = [['A1','B2','C3','D4','E5','F6','G7','H8','I9']]
+diag_units = [diag_cross_vals]
+print(diag_units)
 unitlist = row_units + column_units + square_units + diag_units
 
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 
+square_units = dict((s, [u for u in square_units if s in u]) for s in boxes)
 row_units = dict((s, [u for u in row_units if s in u]) for s in boxes)
 column_units = dict((s, [u for u in column_units if s in u]) for s in boxes)
 
+diag_peers = dict()
+
+diag_peers['A1'] = ['B2', 'C3', 'D4', 'E5', 'F6', 'G7', 'H8', 'I9']
+diag_peers['B2'] = ['A1', 'C3', 'D4', 'E5', 'F6', 'G7', 'H8', 'I9']
+diag_peers['C3'] = ['A1', 'B2', 'D4', 'E5', 'F6', 'G7', 'H8', 'I9']
+diag_peers['D4'] = ['A1', 'B2', 'C3', 'E5', 'F6', 'G7', 'H8', 'I9']
+diag_peers['E5'] = ['A1', 'B2', 'C3', 'D4', 'F6', 'G7', 'H8', 'I9']
+diag_peers['F6'] = ['A1', 'B2', 'C3', 'D4', 'E5', 'G7', 'H8', 'I9']
+diag_peers['G7'] = ['A1', 'B2', 'C3', 'D4', 'E5', 'F6', 'H8', 'I9']
+diag_peers['H8'] = ['A1', 'B2', 'C3', 'D4', 'E5', 'F6', 'G7', 'I9']
+diag_peers['I9'] = ['A1', 'B2', 'C3', 'D4', 'E5', 'F6', 'G7', 'H8']
+
+
+square_peers = dict((s, set(sum(square_units[s],[]))-set([s])) for s in boxes)
 row_peers = dict((s, set(sum(row_units[s],[]))-set([s])) for s in boxes)
 column_peers = dict((s, set(sum(column_units[s],[]))-set([s])) for s in boxes)
 
@@ -47,7 +68,6 @@ def grid_values(grid):
     for c in grid:
         valIdx = valIdx + 1
         if c == '.':
-            print("Changing from: "+c+" to: "+all_digits)
             values.append(all_digits)
         elif c in all_digits:
             values.append(c)
@@ -118,6 +138,8 @@ def naked_twins(values):
             for column_peer in column_peers[box]:
                 #print(column_peer)
                 peer_value = values[column_peer]
+                if(len(peer_value) != 2) :
+                    continue
                 if digit == peer_value :
                     #print("Match")
                     #print("Digit is: "+digit)
@@ -132,13 +154,50 @@ def naked_twins(values):
                             if len(values[inner_peer]) > 1:
                                 values[inner_peer] = values[inner_peer].replace(chr, '')
 
+            if box in diag_cross_vals :
+                for diag_peer in diag_peers[box]:
+                    #print(column_peer)
+                    peer_value = values[diag_peer]
+                    if(len(peer_value) != 2) :
+                        continue
+                    if digit == peer_value :
+                        #print("Match")
+                        #print("Digit is: "+digit)
+                        #print("peer_value: "+peer_value)
+                        #print("peer is: "+peer)
+                        #print("box is: "+box)
+                        # Go thru peers again, removing unneeded values
+                        for inner_peer in diag_peers[box] :
+                            if inner_peer == box or inner_peer == diag_peer :
+                                continue
+                            for chr in digit :
+                                if len(values[inner_peer]) > 1:
+                                    values[inner_peer] = values[inner_peer].replace(chr, '')
+
+
+            for square_peer in square_peers[box]:
+                #print(column_peer)
+                peer_value = values[square_peer]
+                if(len(peer_value) != 2) :
+                    continue
+                if digit == peer_value :
+                    #print("Match")
+                    #print("Digit is: "+digit)
+                    #print("peer_value: "+peer_value)
+                    #print("peer is: "+peer)
+                    #print("box is: "+box)
+                    # Go thru peers again, removing unneeded values
+                    for inner_peer in square_peers[box] :
+                        if inner_peer == box or inner_peer == square_peer :
+                            continue
+                        for chr in digit :
+                            if len(values[inner_peer]) > 1:
+                                values[inner_peer] = values[inner_peer].replace(chr, '')
+
         final_values = values
         if initial_values == final_values :
             stalled = True
 
-
-    print("Value after naked_twins")
-    display(values)
 
     return values
 
