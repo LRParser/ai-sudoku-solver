@@ -9,37 +9,21 @@ boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
+diag_units = [['A1','B2','C3','D4','E5','F6','G7','H8','I9']]
+unitlist = row_units + column_units + square_units + diag_units
+
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+
+row_units = dict((s, [u for u in row_units if s in u]) for s in boxes)
+column_units = dict((s, [u for u in column_units if s in u]) for s in boxes)
+
+row_peers = dict((s, set(sum(row_units[s],[]))-set([s])) for s in boxes)
+column_peers = dict((s, set(sum(column_units[s],[]))-set([s])) for s in boxes)
+
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
 
 #
 
-
-def naked_twins(values):
-    """Eliminate values using the naked twins strategy.
-    Args:
-        values(dict): a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns:
-        the values dictionary with the naked twins eliminated from peers.
-    """
-
-    # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
-
-    #First, find all twins
-
-    twins_values = [box for box in values.keys() if len(values[box]) > 1]
-    for box in twins_values:
-        digit = values[box]
-        # Find where else this value occurs
-
-        for peer in peers[box]:
-            if digit == values[peer] :
-                print("Twin identified, value is %s, at both %s and %s" % (digit,box,peer))
-            # values[peer] = values[peer].replace(digit, '')
-    return values
 
 
 
@@ -63,6 +47,7 @@ def grid_values(grid):
     for c in grid:
         valIdx = valIdx + 1
         if c == '.':
+            print("Changing from: "+c+" to: "+all_digits)
             values.append(all_digits)
         elif c in all_digits:
             values.append(c)
@@ -84,6 +69,80 @@ def display(values):
                       for c in cols))
         if r in 'CF': print(line)
     return
+
+def naked_twins(values):
+    """Eliminate values using the naked twins strategy.
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...}
+
+    Returns:
+        the values dictionary with the naked twins eliminated from peers.
+    """
+
+    # Find all instances of naked twins
+    # Eliminate the naked twins as possibilities for their peers
+
+    #First, find all twins
+
+    stalled = False
+    while not stalled:
+
+        initial_values = values
+        for box in values:
+
+
+
+            digit = values[box]
+            if(len(digit) != 2) :
+                continue
+
+
+            for row_peer in row_peers[box]:
+                peer_value = values[row_peer]
+                if(len(peer_value) != 2) :
+                    continue
+                if digit == peer_value :
+                    #print("Match")
+                    #print("Digit is: "+digit)
+                    #print("peer_value: "+peer_value)
+                    #print("peer is: "+peer)
+                    #print("box is: "+box)
+                    # Go thru peers again, removing unneeded values
+                    for inner_peer in row_peers[box] :
+                        if inner_peer == box or inner_peer == row_peer :
+                            continue
+                        for chr in digit :
+                            if len(values[inner_peer]) > 1:
+                                values[inner_peer] = values[inner_peer].replace(chr, '')
+
+            for column_peer in column_peers[box]:
+                #print(column_peer)
+                peer_value = values[column_peer]
+                if digit == peer_value :
+                    #print("Match")
+                    #print("Digit is: "+digit)
+                    #print("peer_value: "+peer_value)
+                    #print("peer is: "+peer)
+                    #print("box is: "+box)
+                    # Go thru peers again, removing unneeded values
+                    for inner_peer in column_peers[box] :
+                        if inner_peer == box or inner_peer == column_peer :
+                            continue
+                        for chr in digit :
+                            if len(values[inner_peer]) > 1:
+                                values[inner_peer] = values[inner_peer].replace(chr, '')
+
+        final_values = values
+        if initial_values == final_values :
+            stalled = True
+
+
+    print("Value after naked_twins")
+    display(values)
+
+    return values
+
+
 
 def eliminate(values):
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
@@ -114,13 +173,15 @@ def reduce_puzzle(values):
     while not stalled:
         # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
+
+        # Use the naked twins strategy
+        values = naked_twins(values)
+
         # Use the Eliminate Strategy
         values = eliminate(values)
         # Use the Only Choice Strategy
         values = only_choice(values)
 
-        # Use the naked twins strategy
-        values = naked_twins(values)
 
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
@@ -159,9 +220,9 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
     grid_dict = grid_values(grid)
-    print(grid_dict)
+    # print(grid_dict)
     return_val = search(grid_dict)
-    print(return_val)
+    # print(return_val)
     return return_val
 
 if __name__ == '__main__':
@@ -170,11 +231,11 @@ if __name__ == '__main__':
     normal_sudoku_grid = '4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......'
 
 
-    solved_puzzle = solve(diag_sudoku_grid)
-    print(solved_puzzle)
-    if(solved_puzzle is not None) :
-        display(solved_puzzle)
-    else :
-        print("Could not solve puzzle")
-        exit(0)
+    #solved_puzzle = solve(diag_sudoku_grid)
+    #print(solved_puzzle)
+    #if(solved_puzzle is not None) :
+    #    display(solved_puzzle)
+    #else :
+    #    print("Could not solve puzzle")
+    #    exit(0)
 
